@@ -1,19 +1,26 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Sqlite;
 using TaskFlow.Api.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Registre services into DI container
 builder.Services.AddControllers();
-builder.Services.AddDbContext<AppDbContext>(options => 
+builder.Services.AddEndpointsApiExplorer(); // needed for Swagger
+builder.Services.AddSwaggerGen();           // add Swagger
+
+builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add services to the container.
 var app = builder.Build();
 
+// Enable Swagger only in development
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(); // serves the UI at /swagger
+}
+
 app.UseHttpsRedirection();
-app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

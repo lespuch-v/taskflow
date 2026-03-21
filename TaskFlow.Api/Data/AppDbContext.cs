@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SQLitePCL;
+using TaskFlow.Api.DTOs;
 using TaskFlow.Api.Models;
 
 namespace TaskFlow.Api.Data;
@@ -9,7 +12,7 @@ public class AppDbContext : DbContext
     {
     }
 
-    public DbSet<TodoItem> TodoItem => Set<TodoItem>();
+    public DbSet<TodoItem> TodoItems => Set<TodoItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
