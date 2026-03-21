@@ -1,0 +1,31 @@
+# Build output
+**/[Bb]in/
+**/[Oo]bj/
+
+# User-specific files
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# IDE settings
+.vs/
+.vscode/
+.idea/
+.claude/
+
+# Logs
+*.log
+
+# ASP.NET Core local settings
+appsettings.Development.json
+
+# EF Core / local databases
+*.db
+*.db-shm
+*.db-wal
+
+# OS files
+.DS_Store
+Thumbs.db
