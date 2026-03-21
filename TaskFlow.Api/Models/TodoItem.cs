@@ -8,4 +8,7 @@ public class TodoItem
     public bool IsCompleted { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CompletedAt { get; set; } // null until the task is done
+
+    public int UserId {get; set;}
+    public User User { get; set; } = null!;
 }
