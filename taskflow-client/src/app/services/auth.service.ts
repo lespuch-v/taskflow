@@ -19,6 +19,15 @@ export class AuthService {
         JSON.parse(localStorage.getItem(USER_KEY) ?? 'null')
     );
 
+    /** Read-only access to the current JWT token. */
+    readonly token = this._token.asReadonly();
+
+    /** Whether the user is currently authenticated. */
+    readonly isLoggedIn = computed(() => !!this._token());
+
+    /** Read-only access to the current user profile. */
+    readonly user = this._user.asReadonly();
+
     register(dto: RegisterRequest) {
         return this.http
             .post<AuthResponse>(`${environment.apiUrl}/auth/register`, dto)

@@ -1,0 +1,20 @@
+services:
+  api:
+    build:
+      context: ./TaskFlow.Api
+    environment:
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/taskflow.db
+      - Jwt__Secret=your-super-secret-key-change-this-in-production-min-32-chars!!
+    volumes:
+      - taskflow-data:/app/data
+
+  client:
+    build:
+      context: ./taskflow-client
+    ports:
+      - "4200:80"
+    depends_on:
+      - api
+
+volumes:
+  taskflow-data:
