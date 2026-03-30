@@ -1,1 +1,103 @@
-<p>todos works!</p>
+<section class="page-shell todos-page">
+    <header class="todos-header">
+        <div>
+            <p class="eyebrow">TaskFlow</p>
+            <h1>{{ user()?.displayName || 'Your todos' }}</h1>
+            <p class="subtitle">{{ remainingCount() }} left, {{ completedCount() }} completed.</p>
+        </div>
+        <button type="button" class="secondary-button" (click)="logout()">Log out</button>
+    </header>
+
+    <div class="card todo-shell">
+        <form [formGroup]="createForm" (ngSubmit)="createTodo()" class="todo-form">
+            <div class="field">
+                <label for="todo-title">New todo</label>
+                <input id="todo-title" type="text" formControlName="title" placeholder="Buy milk" />
+                @if (createForm.controls.title.touched && createForm.controls.title.invalid) {
+                    <p class="field-error">Title is required and must stay under 200 characters.</p>
+                }
+            </div>
+
+            <div class="field">
+                <label for="todo-description">Description</label>
+                <textarea id="todo-description" formControlName="description" placeholder="Optional details"></textarea>
+            </div>
+
+            <button class="primary-button" type="submit" [disabled]="createPending()">
+                {{ createPending() ? 'Adding...' : 'Add todo' }}
+            </button>
+        </form>
+
+        @if (errorMessage()) {
+            <p class="feedback error">{{ errorMessage() }}</p>
+        }
+
+        @if (loading()) {
+            <p class="feedback">Loading todos...</p>
+        } @else if (!todos().length) {
+            <div class="empty-state">
+                <h2>No todos yet</h2>
+                <p class="subtitle">Create your first item above.</p>
+            </div>
+        } @else {
+            <div class="todo-list">
+                @for (todo of todos(); track todo.id) {
+                    <article class="todo-item" [class.todo-item--completed]="todo.isCompleted">
+                        <div class="todo-item__main">
+                            <label class="todo-check">
+                                <input
+                                    type="checkbox"
+                                    [checked]="todo.isCompleted"
+                                    [disabled]="isBusy(todo.id)"
+                                    (change)="toggleTodo(todo)"
+                                />
+                                <span></span>
+                            </label>
+
+                            <div class="todo-item__content">
+                                @if (editingId() === todo.id) {
+                                    <form [formGroup]="editForm" (ngSubmit)="saveEdit(todo)" class="edit-form">
+                                        <div class="field">
+                                            <input type="text" formControlName="title" placeholder="Todo title" />
+                                        </div>
+                                        <div class="field">
+                                            <textarea formControlName="description" placeholder="Optional details"></textarea>
+                                        </div>
+                                        <div class="todo-actions">
+                                            <button class="primary-button" type="submit" [disabled]="isBusy(todo.id)">
+                                                {{ isBusy(todo.id) ? 'Saving...' : 'Save' }}
+                                            </button>
+                                            <button class="ghost-button" type="button" (click)="cancelEdit()">Cancel</button>
+                                        </div>
+                                    </form>
+                                } @else {
+                                    <div class="todo-copy">
+                                        <h2>{{ todo.title }}</h2>
+                                        @if (todo.description) {
+                                            <p>{{ todo.description }}</p>
+                                        }
+                                        <small>
+                                            Created {{ todo.createdAt | date:'mediumDate' }}
+                                            @if (todo.completedAt) {
+                                                · Done {{ todo.completedAt | date:'mediumDate' }}
+                                            }
+                                        </small>
+                                    </div>
+
+                                    <div class="todo-actions">
+                                        <button class="ghost-button" type="button" (click)="startEdit(todo)" [disabled]="isBusy(todo.id)">
+                                            Edit
+                                        </button>
+                                        <button class="ghost-button danger" type="button" (click)="deleteTodo(todo)" [disabled]="isBusy(todo.id)">
+                                            {{ isBusy(todo.id) ? 'Deleting...' : 'Delete' }}
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+    </div>
+</section>

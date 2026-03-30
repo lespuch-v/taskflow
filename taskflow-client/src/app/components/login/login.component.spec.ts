@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { Router } from '@angular/router';
+import { of } from 'rxjs';
 import { LoginComponent } from './login.component';
+import { AuthService } from '../../services/auth.service';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -8,9 +10,23 @@ describe('LoginComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [LoginComponent]
-    })
-    .compileComponents();
+      imports: [LoginComponent],
+      providers: [
+        {
+          provide: AuthService,
+          useValue: {
+            isLoggedIn: () => false,
+            login: () => of({ token: 'token', email: 'user@example.com', displayName: 'User', expiresAt: '2099-01-01' })
+          }
+        },
+        {
+          provide: Router,
+          useValue: {
+            navigate: jasmine.createSpy('navigate').and.resolveTo(true)
+          }
+        }
+      ]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(LoginComponent);
     component = fixture.componentInstance;

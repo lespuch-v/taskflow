@@ -1,1 +1,46 @@
-<p>register works!</p>
+<section class="page-shell auth-page">
+    <div class="card auth-card">
+        <p class="eyebrow">TaskFlow</p>
+        <h1>Create account</h1>
+        <p class="subtitle">A simple account is enough to start tracking todos.</p>
+
+        <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+            <div class="field">
+                <label for="displayName">Display name</label>
+                <input id="displayName" type="text" formControlName="displayName" placeholder="Your name" autocomplete="name" />
+                @if (form.controls.displayName.touched && form.controls.displayName.invalid) {
+                    <p class="field-error">Enter at least 2 characters.</p>
+                }
+            </div>
+
+            <div class="field">
+                <label for="register-email">Email</label>
+                <input id="register-email" type="email" formControlName="email" placeholder="you@example.com" autocomplete="email" />
+                @if (form.controls.email.touched && form.controls.email.invalid) {
+                    <p class="field-error">Enter a valid email address.</p>
+                }
+            </div>
+
+            <div class="field">
+                <label for="register-password">Password</label>
+                <input id="register-password" type="password" formControlName="password" placeholder="Minimum 6 characters" autocomplete="new-password" />
+                @if (form.controls.password.touched && form.controls.password.invalid) {
+                    <p class="field-error">Password must be at least 6 characters.</p>
+                }
+            </div>
+
+            @if (errorMessage()) {
+                <p class="feedback error">{{ errorMessage() }}</p>
+            }
+
+            <button class="primary-button" type="submit" [disabled]="submitting()">
+                {{ submitting() ? 'Creating account...' : 'Create account' }}
+            </button>
+        </form>
+
+        <p class="auth-switch">
+            Already registered?
+            <a routerLink="/login">Sign in</a>
+        </p>
+    </div>
+</section>
