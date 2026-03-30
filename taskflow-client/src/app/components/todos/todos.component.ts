@@ -18,6 +18,7 @@ export class TodosComponent {
   private readonly auth = inject(AuthService);
   private readonly todoService = inject(TodoService);
 
+  readonly today = new Date();
   readonly todos = signal<TodoItem[]>([]);
   readonly loading = signal(true);
   readonly errorMessage = signal('');
@@ -36,8 +37,15 @@ export class TodosComponent {
   });
 
   readonly user = this.auth.user;
+  readonly totalCount = computed(() => this.todos().length);
   readonly remainingCount = computed(() => this.todos().filter(item => !item.isCompleted).length);
   readonly completedCount = computed(() => this.todos().filter(item => item.isCompleted).length);
+  readonly pendingTodos = computed(() => this.todos().filter(item => !item.isCompleted));
+  readonly completedTodos = computed(() => this.todos().filter(item => item.isCompleted));
+  readonly completionRate = computed(() => {
+    const total = this.totalCount();
+    return total ? Math.round((this.completedCount() / total) * 100) : 0;
+  });
 
   constructor() {
     this.loadTodos();

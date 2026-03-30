@@ -159,3 +159,587 @@ a:hover {
         padding: 20px 12px;
     }
 }
+
+.todos-page {
+    --ink: #13231d;
+    --muted: #66756d;
+    --line: rgba(19, 35, 29, 0.1);
+    --panel: rgba(255, 252, 245, 0.8);
+    --panel-strong: rgba(255, 255, 255, 0.9);
+    --accent: #1d5c4d;
+    --accent-soft: #d9ebe5;
+    --danger: #9f3d2f;
+    min-height: 100vh;
+    padding: 40px clamp(18px, 4vw, 48px) 48px;
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at top left, rgba(227, 240, 232, 0.95), transparent 34%),
+        radial-gradient(circle at top right, rgba(255, 232, 214, 0.9), transparent 28%),
+        linear-gradient(180deg, #f5f0e7 0%, #edf1ea 48%, #f8f6f1 100%);
+    color: var(--ink);
+    font-family: 'Aptos', 'Segoe UI Variable', 'Segoe UI', sans-serif;
+}
+
+.todos-page::before,
+.todos-page::after {
+    content: '';
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(12px);
+    opacity: 0.65;
+    pointer-events: none;
+}
+
+.todos-page::before {
+    width: 320px;
+    height: 320px;
+    top: -120px;
+    right: -60px;
+    background: rgba(255, 223, 198, 0.7);
+}
+
+.todos-page::after {
+    width: 260px;
+    height: 260px;
+    bottom: 40px;
+    left: -80px;
+    background: rgba(205, 229, 221, 0.8);
+}
+
+.todos-shell {
+    position: relative;
+    z-index: 1;
+    max-width: 1320px;
+    margin: 0 auto;
+    display: grid;
+    gap: 26px;
+}
+
+.todos-masthead,
+.rail-panel,
+.todo-group,
+.board-state {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    backdrop-filter: blur(18px);
+    box-shadow: 0 24px 50px rgba(32, 45, 39, 0.08);
+}
+
+.todos-masthead {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) auto;
+    gap: 24px;
+    padding: clamp(24px, 4vw, 36px);
+    animation: fade-up 0.6s ease both;
+}
+
+.masthead-copy h1 {
+    margin: 0;
+    font-size: clamp(2.6rem, 6vw, 4.6rem);
+    line-height: 0.95;
+    letter-spacing: -0.05em;
+}
+
+.todos-page .subtitle {
+    color: var(--muted);
+    max-width: 36rem;
+    font-size: 1rem;
+}
+
+.masthead-copy .subtitle {
+    margin-top: 14px;
+    font-size: 1.05rem;
+}
+
+.todos-page .eyebrow {
+    margin: 0 0 12px;
+    color: var(--accent);
+    font-family: 'Cascadia Mono', 'Cascadia Code', Consolas, monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+}
+
+.masthead-actions {
+    display: grid;
+    align-content: start;
+    justify-items: end;
+    gap: 12px;
+}
+
+.masthead-date {
+    margin: 0;
+    font-family: 'Cascadia Mono', 'Cascadia Code', Consolas, monospace;
+    font-size: 0.82rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.logout-button,
+.submit-button,
+.inline-button {
+    border: 0;
+    font: inherit;
+    transition: transform 0.18s ease, background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+}
+
+.logout-button,
+.submit-button {
+    border-radius: 999px;
+    padding: 12px 18px;
+    font-weight: 700;
+}
+
+.logout-button {
+    background: rgba(19, 35, 29, 0.06);
+    color: var(--ink);
+}
+
+.submit-button {
+    background: var(--accent);
+    color: #f7faf8;
+}
+
+.inline-button {
+    background: transparent;
+    padding: 0;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.inline-button.danger {
+    color: var(--danger);
+}
+
+.logout-button:hover,
+.submit-button:hover,
+.inline-button:hover {
+    transform: translateY(-1px);
+}
+
+.logout-button:disabled,
+.submit-button:disabled,
+.inline-button:disabled {
+    opacity: 0.55;
+    cursor: default;
+    transform: none;
+}
+
+.progress-panel {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 16px;
+    padding-top: 10px;
+}
+
+.progress-panel__header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.progress-panel__header h2 {
+    margin: 0;
+    font-size: clamp(1.4rem, 3vw, 1.9rem);
+    letter-spacing: -0.03em;
+}
+
+.progress-panel__caption {
+    margin: 0;
+    color: var(--muted);
+}
+
+.progress-bar {
+    height: 12px;
+    border-radius: 999px;
+    background: rgba(19, 35, 29, 0.08);
+    overflow: hidden;
+}
+
+.progress-bar span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #234c42 0%, #3f8b73 100%);
+    animation: progress-in 0.8s ease both;
+}
+
+.progress-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.progress-metrics div {
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+}
+
+.progress-metrics span,
+.todo-item__meta small,
+.section-copy,
+.group-copy,
+.group-empty,
+.summary-list dt,
+.board-feedback,
+.todo-copy p {
+    color: var(--muted);
+}
+
+.progress-metrics span {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.88rem;
+}
+
+.progress-metrics strong {
+    font-size: 1.4rem;
+    letter-spacing: -0.03em;
+}
+
+.todos-workspace {
+    display: grid;
+    grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+}
+
+.workspace-rail {
+    display: grid;
+    gap: 18px;
+    animation: fade-up 0.7s ease both;
+}
+
+.workspace-main {
+    display: grid;
+    gap: 18px;
+    animation: fade-up 0.85s ease both;
+}
+
+.rail-panel,
+.todo-group,
+.board-state {
+    padding: 24px;
+}
+
+.section-heading h2,
+.group-heading h2,
+.board-state h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    letter-spacing: -0.04em;
+}
+
+.section-copy,
+.group-copy,
+.group-empty {
+    margin: 10px 0 0;
+    line-height: 1.6;
+}
+
+.summary-list {
+    display: grid;
+    gap: 14px;
+    margin: 22px 0 0;
+}
+
+.summary-list div {
+    display: grid;
+    gap: 4px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+}
+
+.summary-list dt {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.summary-list dd {
+    margin: 0;
+    color: var(--ink);
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.todos-page .field {
+    gap: 8px;
+}
+
+.todos-page .field label {
+    color: var(--ink);
+    font-size: 0.9rem;
+}
+
+.todos-page .field input,
+.todos-page .field textarea {
+    border: 1px solid rgba(19, 35, 29, 0.12);
+    border-radius: 18px;
+    padding: 14px 16px;
+    background: var(--panel-strong);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.todos-page .field input:focus,
+.todos-page .field textarea:focus {
+    border-color: rgba(29, 92, 77, 0.55);
+    box-shadow: 0 0 0 4px rgba(29, 92, 77, 0.12);
+}
+
+.todo-form,
+.edit-form {
+    display: grid;
+    gap: 16px;
+}
+
+.board-feedback {
+    font-size: 0.92rem;
+}
+
+.todo-group--completed {
+    background: rgba(248, 249, 246, 0.78);
+}
+
+.group-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.todo-list {
+    margin-top: 18px;
+}
+
+.todo-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 14px;
+    margin: 0 -10px;
+    padding: 18px 10px;
+    border-radius: 22px;
+    transition: background-color 0.18s ease, transform 0.18s ease;
+}
+
+.todo-item + .todo-item {
+    border-top: 1px solid var(--line);
+}
+
+.todo-item:hover {
+    background: rgba(255, 255, 255, 0.52);
+    transform: translateY(-1px);
+}
+
+.todo-item--completed:hover {
+    background: rgba(255, 255, 255, 0.34);
+}
+
+.todo-item__body {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+}
+
+.todo-item__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.todo-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-family: 'Cascadia Mono', 'Cascadia Code', Consolas, monospace;
+    font-size: 0.76rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.todo-status--completed {
+    background: rgba(19, 35, 29, 0.08);
+    color: var(--muted);
+}
+
+.todo-item__content {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.todo-copy {
+    min-width: 0;
+}
+
+.todo-copy h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    line-height: 1.35;
+    letter-spacing: -0.02em;
+}
+
+.todo-copy p {
+    margin: 8px 0 0;
+    line-height: 1.65;
+    white-space: pre-wrap;
+}
+
+.todo-item--completed .todo-copy h3 {
+    color: rgba(19, 35, 29, 0.78);
+    text-decoration: line-through;
+}
+
+.todo-item--completed .todo-copy p {
+    color: #7b877f;
+}
+
+.todo-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.todo-check {
+    display: inline-flex;
+    align-items: flex-start;
+    padding-top: 2px;
+}
+
+.todo-check input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.todo-check span {
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    border: 2px solid rgba(29, 92, 77, 0.45);
+    background: rgba(255, 255, 255, 0.72);
+    display: inline-block;
+    position: relative;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.18s ease;
+}
+
+.todo-check input:focus + span {
+    box-shadow: 0 0 0 4px rgba(29, 92, 77, 0.12);
+}
+
+.todo-check input:checked + span {
+    background: var(--accent);
+    border-color: var(--accent);
+    transform: scale(1.04);
+}
+
+.todo-check input:checked + span::after {
+    content: '';
+    position: absolute;
+    inset: 4px 7px 7px 4px;
+    border-right: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    transform: rotate(40deg);
+}
+
+.board-state {
+    min-height: 240px;
+    display: grid;
+    align-content: center;
+}
+
+.board-state--empty {
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0)),
+        var(--panel);
+}
+
+.board-state h2 {
+    margin-bottom: 10px;
+}
+
+.group-empty {
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+}
+
+@media (min-width: 981px) {
+    .workspace-rail {
+        position: sticky;
+        top: 22px;
+    }
+}
+
+@media (max-width: 980px) {
+    .todos-workspace,
+    .todos-masthead {
+        grid-template-columns: 1fr;
+    }
+
+    .masthead-actions {
+        justify-items: start;
+    }
+}
+
+@media (max-width: 720px) {
+    .todos-page {
+        padding: 18px 12px 28px;
+    }
+
+    .todos-masthead,
+    .rail-panel,
+    .todo-group,
+    .board-state {
+        border-radius: 22px;
+        padding: 18px;
+    }
+
+    .progress-panel__header,
+    .group-heading,
+    .todo-item__meta,
+    .todo-item__content {
+        display: grid;
+        gap: 10px;
+    }
+
+    .progress-metrics {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .todos-page *,
+    .todos-page *::before,
+    .todos-page *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+@keyframes fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes progress-in {
+    from {
+        width: 0;
+    }
+}

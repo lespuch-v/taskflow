@@ -1,103 +1,270 @@
-<section class="page-shell todos-page">
-    <header class="todos-header">
-        <div>
-            <p class="eyebrow">TaskFlow</p>
-            <h1>{{ user()?.displayName || 'Your todos' }}</h1>
-            <p class="subtitle">{{ remainingCount() }} left, {{ completedCount() }} completed.</p>
-        </div>
-        <button type="button" class="secondary-button" (click)="logout()">Log out</button>
-    </header>
+<section class="todos-page">
+    <div class="todos-shell">
+        <header class="todos-masthead">
+            <div class="masthead-copy">
+                <p class="eyebrow">TaskFlow</p>
+                <h1>{{ user()?.displayName || 'Your todos' }}</h1>
+                <p class="subtitle">Keep the queue tight. {{ remainingCount() }} active, {{ completedCount() }} finished.</p>
+            </div>
 
-    <div class="card todo-shell">
-        <form [formGroup]="createForm" (ngSubmit)="createTodo()" class="todo-form">
-            <div class="field">
-                <label for="todo-title">New todo</label>
-                <input id="todo-title" type="text" formControlName="title" placeholder="Buy milk" />
-                @if (createForm.controls.title.touched && createForm.controls.title.invalid) {
-                    <p class="field-error">Title is required and must stay under 200 characters.</p>
+            <div class="masthead-actions">
+                <p class="masthead-date">{{ today | date:'EEEE, d MMMM' }}</p>
+                <button type="button" class="logout-button" (click)="logout()">Log out</button>
+            </div>
+
+            <section class="progress-panel" aria-label="Todo progress">
+                <div class="progress-panel__header">
+                    <div>
+                        <p class="eyebrow">Overview</p>
+                        <h2>{{ completionRate() }}% complete</h2>
+                    </div>
+                    <p class="progress-panel__caption">{{ totalCount() }} total tasks</p>
+                </div>
+
+                <div class="progress-bar" aria-hidden="true">
+                    <span [style.width.%]="completionRate()"></span>
+                </div>
+
+                <div class="progress-metrics">
+                    <div>
+                        <span>Open</span>
+                        <strong>{{ remainingCount() }}</strong>
+                    </div>
+                    <div>
+                        <span>Done</span>
+                        <strong>{{ completedCount() }}</strong>
+                    </div>
+                    <div>
+                        <span>Total</span>
+                        <strong>{{ totalCount() }}</strong>
+                    </div>
+                </div>
+            </section>
+        </header>
+
+        <div class="todos-workspace">
+            <aside class="workspace-rail">
+                <section class="rail-panel rail-panel--summary">
+                    <div class="section-heading">
+                        <p class="eyebrow">Focus</p>
+                        <h2>Plan the next move</h2>
+                        <p class="section-copy">Keep the list lean. Capture only what needs action and archive the rest quickly.</p>
+                    </div>
+
+                    <dl class="summary-list">
+                        <div>
+                            <dt>Current workload</dt>
+                            <dd>{{ remainingCount() }} items in play</dd>
+                        </div>
+                        <div>
+                            <dt>Latest pace</dt>
+                            <dd>{{ completedCount() }} wrapped so far</dd>
+                        </div>
+                        <div>
+                            <dt>Board health</dt>
+                            <dd>{{ completionRate() }}% of the queue closed</dd>
+                        </div>
+                    </dl>
+                </section>
+
+                <section class="rail-panel rail-panel--composer">
+                    <div class="section-heading">
+                        <p class="eyebrow">Capture</p>
+                        <h2>Add a task</h2>
+                        <p class="section-copy">Lead with a sharp title. Add notes only when future-you needs context.</p>
+                    </div>
+
+                    <form [formGroup]="createForm" (ngSubmit)="createTodo()" class="todo-form">
+                        <div class="field">
+                            <label for="todo-title">Title</label>
+                            <input id="todo-title" type="text" formControlName="title" placeholder="Ship onboarding polish" />
+                            @if (createForm.controls.title.touched && createForm.controls.title.invalid) {
+                                <p class="field-error">Title is required and must stay under 200 characters.</p>
+                            }
+                        </div>
+
+                        <div class="field">
+                            <label for="todo-description">Notes</label>
+                            <textarea id="todo-description" formControlName="description" placeholder="Optional details, links, or next step"></textarea>
+                        </div>
+
+                        <button class="submit-button" type="submit" [disabled]="createPending()">
+                            {{ createPending() ? 'Adding...' : 'Add task' }}
+                        </button>
+                    </form>
+                </section>
+            </aside>
+
+            <section class="workspace-main">
+                @if (errorMessage()) {
+                    <p class="feedback error board-feedback">{{ errorMessage() }}</p>
                 }
-            </div>
 
-            <div class="field">
-                <label for="todo-description">Description</label>
-                <textarea id="todo-description" formControlName="description" placeholder="Optional details"></textarea>
-            </div>
+                @if (loading()) {
+                    <section class="board-state">
+                        <p class="eyebrow">Syncing</p>
+                        <h2>Loading your workspace</h2>
+                        <p class="subtitle">Pulling the latest tasks from the server.</p>
+                    </section>
+                } @else if (!todos().length) {
+                    <section class="board-state board-state--empty">
+                        <p class="eyebrow">Clear Board</p>
+                        <h2>No tasks yet</h2>
+                        <p class="subtitle">Use the capture panel to add the first item and start shaping the day.</p>
+                    </section>
+                } @else {
+                    <section class="todo-group">
+                        <div class="group-heading">
+                            <div>
+                                <p class="eyebrow">In focus</p>
+                                <h2>{{ pendingTodos().length }} active tasks</h2>
+                            </div>
+                            <p class="group-copy">These are the items still demanding attention.</p>
+                        </div>
 
-            <button class="primary-button" type="submit" [disabled]="createPending()">
-                {{ createPending() ? 'Adding...' : 'Add todo' }}
-            </button>
-        </form>
+                        @if (pendingTodos().length) {
+                            <div class="todo-list">
+                                @for (todo of pendingTodos(); track todo.id) {
+                                    <article class="todo-item">
+                                        <label class="todo-check">
+                                            <input
+                                                type="checkbox"
+                                                [checked]="todo.isCompleted"
+                                                [disabled]="isBusy(todo.id)"
+                                                (change)="toggleTodo(todo)"
+                                            />
+                                            <span></span>
+                                        </label>
 
-        @if (errorMessage()) {
-            <p class="feedback error">{{ errorMessage() }}</p>
-        }
+                                        <div class="todo-item__body">
+                                            <div class="todo-item__meta">
+                                                <span class="todo-status">Active</span>
+                                                <small>Created {{ todo.createdAt | date:'d MMM yyyy' }}</small>
+                                            </div>
 
-        @if (loading()) {
-            <p class="feedback">Loading todos...</p>
-        } @else if (!todos().length) {
-            <div class="empty-state">
-                <h2>No todos yet</h2>
-                <p class="subtitle">Create your first item above.</p>
-            </div>
-        } @else {
-            <div class="todo-list">
-                @for (todo of todos(); track todo.id) {
-                    <article class="todo-item" [class.todo-item--completed]="todo.isCompleted">
-                        <div class="todo-item__main">
-                            <label class="todo-check">
-                                <input
-                                    type="checkbox"
-                                    [checked]="todo.isCompleted"
-                                    [disabled]="isBusy(todo.id)"
-                                    (change)="toggleTodo(todo)"
-                                />
-                                <span></span>
-                            </label>
+                                            @if (editingId() === todo.id) {
+                                                <form [formGroup]="editForm" (ngSubmit)="saveEdit(todo)" class="edit-form">
+                                                    <div class="field">
+                                                        <label [for]="'edit-title-' + todo.id">Title</label>
+                                                        <input [id]="'edit-title-' + todo.id" type="text" formControlName="title" placeholder="Todo title" />
+                                                    </div>
+                                                    <div class="field">
+                                                        <label [for]="'edit-description-' + todo.id">Notes</label>
+                                                        <textarea [id]="'edit-description-' + todo.id" formControlName="description" placeholder="Optional details"></textarea>
+                                                    </div>
+                                                    <div class="todo-actions">
+                                                        <button class="submit-button" type="submit" [disabled]="isBusy(todo.id)">
+                                                            {{ isBusy(todo.id) ? 'Saving...' : 'Save' }}
+                                                        </button>
+                                                        <button class="inline-button" type="button" (click)="cancelEdit()">Cancel</button>
+                                                    </div>
+                                                </form>
+                                            } @else {
+                                                <div class="todo-item__content">
+                                                    <div class="todo-copy">
+                                                        <h3>{{ todo.title }}</h3>
+                                                        @if (todo.description) {
+                                                            <p>{{ todo.description }}</p>
+                                                        }
+                                                    </div>
 
-                            <div class="todo-item__content">
-                                @if (editingId() === todo.id) {
-                                    <form [formGroup]="editForm" (ngSubmit)="saveEdit(todo)" class="edit-form">
-                                        <div class="field">
-                                            <input type="text" formControlName="title" placeholder="Todo title" />
-                                        </div>
-                                        <div class="field">
-                                            <textarea formControlName="description" placeholder="Optional details"></textarea>
-                                        </div>
-                                        <div class="todo-actions">
-                                            <button class="primary-button" type="submit" [disabled]="isBusy(todo.id)">
-                                                {{ isBusy(todo.id) ? 'Saving...' : 'Save' }}
-                                            </button>
-                                            <button class="ghost-button" type="button" (click)="cancelEdit()">Cancel</button>
-                                        </div>
-                                    </form>
-                                } @else {
-                                    <div class="todo-copy">
-                                        <h2>{{ todo.title }}</h2>
-                                        @if (todo.description) {
-                                            <p>{{ todo.description }}</p>
-                                        }
-                                        <small>
-                                            Created {{ todo.createdAt | date:'mediumDate' }}
-                                            @if (todo.completedAt) {
-                                                · Done {{ todo.completedAt | date:'mediumDate' }}
+                                                    <div class="todo-actions">
+                                                        <button class="inline-button" type="button" (click)="startEdit(todo)" [disabled]="isBusy(todo.id)">
+                                                            Edit
+                                                        </button>
+                                                        <button class="inline-button danger" type="button" (click)="deleteTodo(todo)" [disabled]="isBusy(todo.id)">
+                                                            {{ isBusy(todo.id) ? 'Deleting...' : 'Delete' }}
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             }
-                                        </small>
-                                    </div>
-
-                                    <div class="todo-actions">
-                                        <button class="ghost-button" type="button" (click)="startEdit(todo)" [disabled]="isBusy(todo.id)">
-                                            Edit
-                                        </button>
-                                        <button class="ghost-button danger" type="button" (click)="deleteTodo(todo)" [disabled]="isBusy(todo.id)">
-                                            {{ isBusy(todo.id) ? 'Deleting...' : 'Delete' }}
-                                        </button>
-                                    </div>
+                                        </div>
+                                    </article>
                                 }
                             </div>
-                        </div>
-                    </article>
+                        } @else {
+                            <p class="group-empty">Everything is done. Add a new task or enjoy the clear board.</p>
+                        }
+                    </section>
+
+                    @if (completedTodos().length) {
+                        <section class="todo-group todo-group--completed">
+                            <div class="group-heading">
+                                <div>
+                                    <p class="eyebrow">Archive</p>
+                                    <h2>{{ completedTodos().length }} completed tasks</h2>
+                                </div>
+                                <p class="group-copy">Closed items stay visible here until you need the trail.</p>
+                            </div>
+
+                            <div class="todo-list">
+                                @for (todo of completedTodos(); track todo.id) {
+                                    <article class="todo-item todo-item--completed">
+                                        <label class="todo-check">
+                                            <input
+                                                type="checkbox"
+                                                [checked]="todo.isCompleted"
+                                                [disabled]="isBusy(todo.id)"
+                                                (change)="toggleTodo(todo)"
+                                            />
+                                            <span></span>
+                                        </label>
+
+                                        <div class="todo-item__body">
+                                            <div class="todo-item__meta">
+                                                <span class="todo-status todo-status--completed">Done</span>
+                                                <small>
+                                                    Created {{ todo.createdAt | date:'d MMM yyyy' }}
+                                                    @if (todo.completedAt) {
+                                                        <span>&middot; Finished {{ todo.completedAt | date:'d MMM yyyy' }}</span>
+                                                    }
+                                                </small>
+                                            </div>
+
+                                            @if (editingId() === todo.id) {
+                                                <form [formGroup]="editForm" (ngSubmit)="saveEdit(todo)" class="edit-form">
+                                                    <div class="field">
+                                                        <label [for]="'edit-title-completed-' + todo.id">Title</label>
+                                                        <input [id]="'edit-title-completed-' + todo.id" type="text" formControlName="title" placeholder="Todo title" />
+                                                    </div>
+                                                    <div class="field">
+                                                        <label [for]="'edit-description-completed-' + todo.id">Notes</label>
+                                                        <textarea [id]="'edit-description-completed-' + todo.id" formControlName="description" placeholder="Optional details"></textarea>
+                                                    </div>
+                                                    <div class="todo-actions">
+                                                        <button class="submit-button" type="submit" [disabled]="isBusy(todo.id)">
+                                                            {{ isBusy(todo.id) ? 'Saving...' : 'Save' }}
+                                                        </button>
+                                                        <button class="inline-button" type="button" (click)="cancelEdit()">Cancel</button>
+                                                    </div>
+                                                </form>
+                                            } @else {
+                                                <div class="todo-item__content">
+                                                    <div class="todo-copy">
+                                                        <h3>{{ todo.title }}</h3>
+                                                        @if (todo.description) {
+                                                            <p>{{ todo.description }}</p>
+                                                        }
+                                                    </div>
+
+                                                    <div class="todo-actions">
+                                                        <button class="inline-button" type="button" (click)="startEdit(todo)" [disabled]="isBusy(todo.id)">
+                                                            Edit
+                                                        </button>
+                                                        <button class="inline-button danger" type="button" (click)="deleteTodo(todo)" [disabled]="isBusy(todo.id)">
+                                                            {{ isBusy(todo.id) ? 'Deleting...' : 'Delete' }}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </article>
+                                }
+                            </div>
+                        </section>
+                    }
                 }
-            </div>
-        }
+            </section>
+        </div>
     </div>
 </section>
